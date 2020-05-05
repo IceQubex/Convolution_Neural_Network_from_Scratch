@@ -11,7 +11,7 @@ import os
 #Load image and resize the dimensions to 160x90
 path = os.getcwd()
 #print(path)
-folder = os.path.join(path,r'Hand Gesture Dataset\Palm')
+folder = os.path.join(path,r'Nishan\Palm')
 print(path, folder)
 count = 0
 
@@ -31,7 +31,7 @@ for filename in os.listdir(folder):
     #Convert to grayscale and use otsu's threshold
     gray = cv2.cvtColor(resized_image, cv2.COLOR_BGR2GRAY)
     thresh = cv2.threshold(gray, 0,255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
-    output_path = "D:/UMBC/Sem 2/CV/Term Project/Binary/Palm/Palm_{}.jpg".format(count)
+    output_path = "Pic (" + str(count+1) + ")"
     #cv2.imshow("Binary", thresh)
     cv2.imwrite(output_path, thresh)
     print("Binary {} written".format(count))
