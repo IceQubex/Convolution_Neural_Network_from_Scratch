@@ -15,8 +15,15 @@
     </option>
   </component>
   <component name="Git.Settings">
-    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/Convolution-Neural-Network-from-Scratch" />
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
     <option name="UPDATE_TYPE" value="MERGE" />
+  </component>
+  <component name="GithubPullRequestsUISettings">
+    <option name="hiddenUrls">
+      <set>
+        <option value="https://github.com/IceQubex/Convolution-Neural-Network-from-Scratch.git" />
+      </set>
+    </option>
   </component>
   <component name="ProjectId" id="1aVoeenx9KrYKo3bOeaSm93hDS0" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />

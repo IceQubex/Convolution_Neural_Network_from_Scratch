@@ -8,7 +8,7 @@ Converts RGB image capture in camera to 160x90 image in binary using otsu's thre
 import cv2
 import os
 
-#Load image and rezie the dimensions to 160x90
+#Load image and resize the dimensions to 160x90
 path = os.getcwd()
 #print(path)
 folder = os.path.join(path,r'Hand Gesture Dataset\Palm')
