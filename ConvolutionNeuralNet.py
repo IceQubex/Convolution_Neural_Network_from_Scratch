@@ -256,6 +256,9 @@ class NeuralNetwork:
                 correct += 1
         return (correct / len(self.train_data)) * 100
 
+    def evaluate_confusion_test(self):
+        self.confusion_matrix = np.zeros((self.num_of_classes, self.num_of_classes))
+        print(self.confusion_matrix.shape)
 
 '''
 Main Code of the program
