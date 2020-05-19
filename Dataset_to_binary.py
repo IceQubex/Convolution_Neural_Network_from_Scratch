@@ -11,7 +11,7 @@ import os
 #Load image and resize the dimensions to 160x90
 path = os.getcwd()
 #print(path)
-folder = os.path.join(path,r'Nishan\TU')
+folder = os.path.join(path,r'Nishan\Palm')
 print(path, folder)
 count = 0
 

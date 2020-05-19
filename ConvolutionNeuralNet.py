@@ -7,14 +7,14 @@ import os
 import matplotlib.pyplot as plt
 from matplotlib.image import imread
 
-#simple image scaling to (nR x nC) size
+# simple function for image scaling to (nR x nC) size
 def scale(im, nR, nC):
-  nR0 = len(im)     #source number of rows
-  nC0 = len(im[0])  #source number of columns
+  nR0 = len(im)     # source number of rows
+  nC0 = len(im[0])  # source number of columns
   return [[ im[int(nR0 * r / nR)][int(nC0 * c / nC)]
              for c in range(nC)] for r in range(nR)]
 
-#defining activation functions
+# defining the various  activation functions
 def softmax(x):
     return np.exp(x-np.max(x)) / np.sum(np.exp(x-np.max(x)))
 def ReLU(x):
@@ -26,7 +26,7 @@ def sigmoid(x):
 def tanh(x):
     return (np.exp(x)-np.exp(-x))/(np.exp(x)+np.exp(-x))
 
-#defining derivative of activation functions
+# defining derivatives of the respective activation functions
 def der_ReLU(x):
     if x >= 0:
         return 1
@@ -41,6 +41,10 @@ def der_sigmoid(x):
     return sigmoid(x)*(1-sigmoid(x))
 def der_tanh(x):
     return (1-(np.power(tanh(x),2)))
+
+'''
+Neural Network Class, and its respective methods
+'''
 
 class NeuralNetwork:
 
@@ -161,19 +165,16 @@ class NeuralNetwork:
                     print("Convolution Output")
                     print(self.first_conv_output)
                     time.sleep(2)
-
                 self.first_maxpool_output = self.maxpool_layer(self.first_conv_output, 2)
                 if self.debug == True:
                     print("MaxPool Output")
                     print(self.first_maxpool_output)
                     time.sleep(2)
-
                 self.first_ReLU_output = leaky_ReLU(self.first_maxpool_output)
                 if self.debug == True:
                     print("ReLU Output")
                     print(self.first_ReLU_output)
                     time.sleep(2)
-
                 self.first_layer_input = self.connected_layer(self.first_ReLU_output.flatten(), self.first_layer_weights, self.first_layer_bias)
                 self.first_layer_output = leaky_ReLU(self.first_layer_input)
                 self.final_layer_input = self.connected_layer(self.first_layer_output, self.final_layer_weights, self.final_layer_bias)
@@ -222,9 +223,10 @@ class NeuralNetwork:
                 self.final_layer_weights -= self.learning_rate * self.d_loss_d_final_layer_weights
                 self.final_layer_bias -= self.learning_rate * self.d_loss_d_final_layer_bias
                 self.first_layer_filter -= self.learning_rate * self.d_loss_d_filters
-                # print(str(i + 1) + " images done!")
+                print(str(i + 1) + " images done!")
             print(str(iterations + 1) + " epochs done!")
 
+    # class method to evaluate the model's accuracy on the test set
     def evaluate_test(self):
         correct = 0
         for i in range(len(self.test_data)):
@@ -239,6 +241,7 @@ class NeuralNetwork:
                 correct += 1
         return (correct / len(self.test_data)) * 100
 
+    # class method to evaluate the model's accuracy on the training set
     def evaluate_train(self):
         correct = 0
         for i in range(len(self.train_data)):
@@ -251,8 +254,12 @@ class NeuralNetwork:
             self.final_layer_output = softmax(self.final_layer_input)
             if np.argmax(self.final_layer_output) == self.train_label[i]:
                 correct += 1
-        # print(self.first_layer_filter)
         return (correct / len(self.train_data)) * 100
+
+
+'''
+Main Code of the program
+'''
 
 train_data = []
 train_label = []
@@ -260,7 +267,7 @@ for i in range(len(os.listdir("Pics"))):
     print("Hand gesture "+os.listdir("Pics")[i]+" is assigned to class " + str(i)+".")
     for j in range(len(os.listdir("Pics/"+os.listdir("Pics")[i]))):
         img = imread("Pics/"+os.listdir("Pics")[i]+"/Pic (" + str(j+1) + ").jpg")
-        img1 = scale(img,36,64) #to downscale the images
+        img1 = scale(img,36,64) # to downscale the images
         img1 = np.array(img1)
         train_data.append(img1)
         train_label.append(i)
@@ -277,6 +284,6 @@ train_label = np.array(train_label)
 test_data = np.array(test_data)/255
 test_label = np.array(test_label)
 
-CNN = NeuralNetwork(train_data, train_label, test_data, test_label, 100)
+CNN = NeuralNetwork(train_data, train_label, test_data, test_label, 2)
 CNN.train()
 print(CNN.evaluate_train(), CNN.evaluate_test())
