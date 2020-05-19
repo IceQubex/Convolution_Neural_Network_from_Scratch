@@ -257,7 +257,25 @@ class NeuralNetwork:
         return (correct / len(self.train_data)) * 100
 
     def evaluate_confusion_test(self):
+        print("Evaluating performance on the Test Set:")
+        print("\nConfusion Matrix:")
         self.confusion_matrix = np.zeros((self.num_of_classes, self.num_of_classes))
+        for i in range(len(self.train_data)):
+            self.first_conv_output = self.convolutional_layer(self.train_data[i], self.first_layer_filter)
+            self.first_maxpool_output = self.maxpool_layer(self.first_conv_output, 2)
+            self.first_ReLU_output = leaky_ReLU(self.first_maxpool_output)
+            self.first_layer_input = self.connected_layer(self.first_ReLU_output.flatten(), self.first_layer_weights, self.first_layer_bias)
+            self.first_layer_output = leaky_ReLU(self.first_layer_input)
+            self.final_layer_input = self.connected_layer(self.first_layer_output, self.final_layer_weights, self.final_layer_bias)
+            self.final_layer_output = softmax(self.final_layer_input)
+            self.confusion_matrix[np.argmax(self.final_layer_output)][self.train_label[i]] += 1
+        print(self.confusion_matrix)
+        self.true_positives = np.zeros(self.num_of_classes)
+        for j in range(self.num_of_classes):
+            self. += self.confusion_matrix[j][j]
+        print("Overall Accuracy: " + str((correct / len(self.train_data)) * 100) + "%")
+        print("")
+
         print(self.confusion_matrix.shape)
 
 '''
