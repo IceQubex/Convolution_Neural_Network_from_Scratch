@@ -70,8 +70,8 @@ class NeuralNetwork:
 
         # settings for first convolutional layer
         self.num_of_filters = 50
-        self.filter_height = 20
-        self.filter_width = 20
+        self.filter_height = 50
+        self.filter_width = 50
         self.first_layer_filter = np.random.normal(size=(self.num_of_filters, self.filter_height, self.filter_width)) * math.sqrt(2 / len(self.train_data[0].flatten()))
 
         # settings for first connected layer
@@ -87,6 +87,12 @@ class NeuralNetwork:
         self.final_layer_output = np.zeros(self.final_layer_input.shape)
         self.final_layer_bias = np.zeros(self.final_layer_input.shape)
         self.final_layer_weights = np.random.normal(size=(self.num_of_classes, self.first_layer_num)) * math.sqrt(2 / self.first_layer_num)
+
+    def cyclic_learning_rate(self, iterations):
+        return 0.002*abs((iterations%10)-5)+0.0025
+
+    def exponential_learning_rate(self, iterations):
+        return 0.01*np.exp(-0.05*iterations)
 
     def connected_layer(self, data4, weights, bias):
         input = np.zeros(bias.shape)
@@ -218,11 +224,11 @@ class NeuralNetwork:
                     time.sleep(2)
 
                 # Updating the weights
-                self.first_layer_weights -= self.learning_rate * self.d_loss_d_first_layer_weights
-                self.first_layer_bias -= self.learning_rate * self.d_loss_d_first_layer_bias
-                self.final_layer_weights -= self.learning_rate * self.d_loss_d_final_layer_weights
-                self.final_layer_bias -= self.learning_rate * self.d_loss_d_final_layer_bias
-                self.first_layer_filter -= self.learning_rate * self.d_loss_d_filters
+                self.first_layer_weights -= self.cyclic_learning_rate(iterations) * self.d_loss_d_first_layer_weights
+                self.first_layer_bias -= self.cyclic_learning_rate(iterations) * self.d_loss_d_first_layer_bias
+                self.final_layer_weights -= self.cyclic_learning_rate(iterations) * self.d_loss_d_final_layer_weights
+                self.final_layer_bias -= self.cyclic_learning_rate(iterations) * self.d_loss_d_final_layer_bias
+                self.first_layer_filter -= self.cyclic_learning_rate(iterations) * self.d_loss_d_filters
                 print(str(i + 1) + " images done!")
             print(str(iterations + 1) + " epochs done!")
 
@@ -257,7 +263,7 @@ class NeuralNetwork:
         return (correct / len(self.test_data)) * 100
 
     def evaluate_confusion_train(self):
-        print("Evaluating performance on the Train Set:")
+        print("\nEvaluating performance on the Train Set:")
         print("\nConfusion Matrix:")
         self.confusion_matrix = np.zeros((self.num_of_classes, self.num_of_classes))
         for i in range(len(self.train_data)):
@@ -304,7 +310,7 @@ class NeuralNetwork:
         print("Micro-Averaged F1 Score: " + str(self.micro_f1_score))
 
     def evaluate_confusion_test(self):
-        print("Evaluating performance on the Test Set:")
+        print("\nEvaluating performance on the Test Set:")
         print("\nConfusion Matrix:")
         self.confusion_matrix = np.zeros((self.num_of_classes, self.num_of_classes))
         for i in range(len(self.test_data)):
@@ -338,34 +344,36 @@ class NeuralNetwork:
         self.macro_recall = np.sum(self.recall)/self.num_of_classes
         self.macro_precision = np.sum(self.precision)/self.num_of_classes
         self.macro_f1_score = (2*self.macro_recall*self.macro_precision)/(self.macro_recall+self.macro_precision)
-        print("Macro-Averaged Precision: " + str(self.macro_precision))
-        print("Macro-Averaged Recall: " + str(self.macro_recall))
-        print("Macro-Averaged F1 Score: " + str(self.macro_f1_score))
+        print("Precision: " + str(self.macro_precision))
+        print("Recall: " + str(self.macro_recall))
+        print("F1 Score: " + str(self.macro_f1_score))
 
         print("\nMicro-Averaged Stats: ")
         self.micro_recall = np.sum(self.true_positives)/(np.sum(self.true_positives)+np.sum(self.false_negatives))
         self.micro_precision = np.sum(self.true_positives)/(np.sum(self.true_positives)+np.sum(self.false_positives))
         self.micro_f1_score = (2*self.micro_recall*self.micro_precision)/(self.micro_recall+self.micro_precision)
-        print("Micro-Averaged Precision: " + str(self.micro_precision))
-        print("Micro-Averaged Recall: " + str(self.micro_recall))
-        print("Micro-Averaged F1 Score: " + str(self.micro_f1_score))
+        print("Precision: " + str(self.micro_precision))
+        print("Recall: " + str(self.micro_recall))
+        print("F1 Score: " + str(self.micro_f1_score))
 
 
 '''
 Main Code of the program
 '''
 
+#importing the data and applying labels to it
 train_data = []
 train_label = []
 for i in range(len(os.listdir("Pics"))):
     print("Hand gesture "+os.listdir("Pics")[i]+" is assigned to class " + str(i)+".")
     for j in range(len(os.listdir("Pics/"+os.listdir("Pics")[i]))):
         img = imread("Pics/"+os.listdir("Pics")[i]+"/Pic (" + str(j+1) + ").jpg")
-        img1 = scale(img,36,64) # to downscale the images
-        img1 = np.array(img1)
-        train_data.append(img1)
+        # img1 = scale(img,36,64) # to downscale the images
+        # img1 = np.array(img1)
+        train_data.append(img)
         train_label.append(i)
 
+# shuffling the data and creating the train and test split
 temp = list(zip(train_data, train_label))
 random.shuffle(temp)
 temp_train = temp[0:80]
@@ -378,7 +386,8 @@ train_label = np.array(train_label)
 test_data = np.array(test_data)/255
 test_label = np.array(test_label)
 
-CNN = NeuralNetwork(train_data, train_label, test_data, test_label, 1)
+
+CNN = NeuralNetwork(train_data, train_label, test_data, test_label, 10)
 CNN.train()
 
 CNN.evaluate_confusion_train()
