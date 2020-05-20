@@ -270,11 +270,40 @@ class NeuralNetwork:
             self.final_layer_output = softmax(self.final_layer_input)
             self.confusion_matrix[np.argmax(self.final_layer_output)][self.train_label[i]] += 1
         print(self.confusion_matrix)
+
+        # define additional metrics
         self.true_positives = np.zeros(self.num_of_classes)
+        self.false_positives = np.zeros(self.num_of_classes)
+        self.false_negatives = np.zeros(self.num_of_classes)
+        self.precision = np.zeros(self.num_of_classes)
+        self.recall = np.zeros(self.num_of_classes)
+
         for j in range(self.num_of_classes):
-            self. += self.confusion_matrix[j][j]
-        print("Overall Accuracy: " + str((correct / len(self.train_data)) * 100) + "%")
-        print("")
+            self.true_positives[j] = self.confusion_matrix[j][j]
+            self.false_positives[j] = np.sum(self.confusion_matrix[:,j]) - self.true_positives[j]
+            self.false_negatives[j] = np.sum(self.confusion_matrix[j,:]) - self.true_positives[j]
+            self.recall[j] = self.true_positives[j]/(self.true_positives[j]+self.false_negatives[j])
+            self.precision[j] = self.true_positives[j] / (self.true_positives[j] + self.false_positives[j])
+
+        print("Overall Accuracy: " + str((np.sum(self.true_positives) / len(self.train_data)) * 100) + "%")
+
+        print("\nMacro-Averaged Stats:")
+        self.macro_recall = np.sum(self.recall)/self.num_of_classes
+        self.macro_precision = np.sum(self.precision)/self.num_of_classes
+        self.macro_f1_score = (2*self.macro_recall*self.macro_precision)/(self.macro_recall+self.macro_precision)
+        print("Macro-Averaged Precision: " + str(self.macro_precision))
+        print("Macro-Averaged Recall: " + str(self.macro_recall))
+        print("Macro-Averaged F1 Score: " + str(self.macro_f1_score))
+
+        print("\nMicro-Averaged Stats: ")
+        self.micro_recall = np.sum(self.true_positives)/(np.sum(self.true_positives)+np.sum(self.false_negatives))
+        self.micro_precision = np.sum(self.true_positives)/(np.sum(self.true_positives)+np.sum(self.false_positives))
+        self.micro_f1_score = (2*self.micro_recall*self.micro_precision)/(self.micro_recall+self.micro_precision)
+        print("Micro-Averaged Precision: " + str(self.micro_precision))
+        print("Micro-Averaged Recall: " + str(self.micro_recall))
+        print("Micro-Averaged F1 Score: " + str(self.micro_f1_score))
+
+
 
         print(self.confusion_matrix.shape)
 
@@ -305,6 +334,6 @@ train_label = np.array(train_label)
 test_data = np.array(test_data)/255
 test_label = np.array(test_label)
 
-CNN = NeuralNetwork(train_data, train_label, test_data, test_label, 2)
+CNN = NeuralNetwork(train_data, train_label, test_data, test_label, 1)
 CNN.train()
-print(CNN.evaluate_train(), CNN.evaluate_test())
+print(CNN.evaluate_confusion_test(), CNN.evaluate_test())
