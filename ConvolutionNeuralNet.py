@@ -229,7 +229,8 @@ class NeuralNetwork:
                 self.final_layer_weights -= self.exponential_learning_rate(iterations) * self.d_loss_d_final_layer_weights
                 self.final_layer_bias -= self.exponential_learning_rate(iterations) * self.d_loss_d_final_layer_bias
                 self.first_layer_filter -= self.exponential_learning_rate(iterations) * self.d_loss_d_filters
-                print(str(i + 1) + " images done!")
+                # print(str(i + 1) + " images done!")
+            print(self.evaluate_train(), self.evaluate_test())
             print(str(iterations + 1) + " epochs done!")
 
     # class method to evaluate the model's accuracy on the train set
@@ -382,8 +383,9 @@ for i in range(len(os.listdir("Pics"))):
 # shuffling the data and creating the train and test split
 temp = list(zip(train_data, train_label))
 random.shuffle(temp)
-temp_train = temp[0:80]
-temp_test = temp[80:]
+temp_train = temp[:math.floor(0.75*len(temp))]
+temp_test = temp[math.floor(0.75*len(temp)):]
+
 
 train_data, train_label = zip(*temp_train)
 test_data, test_label = zip(*temp_test)
