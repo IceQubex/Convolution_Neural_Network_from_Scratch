@@ -224,11 +224,11 @@ class NeuralNetwork:
                     time.sleep(2)
 
                 # Updating the weights
-                self.first_layer_weights -= self.cyclic_learning_rate(iterations) * self.d_loss_d_first_layer_weights
-                self.first_layer_bias -= self.cyclic_learning_rate(iterations) * self.d_loss_d_first_layer_bias
-                self.final_layer_weights -= self.cyclic_learning_rate(iterations) * self.d_loss_d_final_layer_weights
-                self.final_layer_bias -= self.cyclic_learning_rate(iterations) * self.d_loss_d_final_layer_bias
-                self.first_layer_filter -= self.cyclic_learning_rate(iterations) * self.d_loss_d_filters
+                self.first_layer_weights -= self.exponential_learning_rate(iterations) * self.d_loss_d_first_layer_weights
+                self.first_layer_bias -= self.exponential_learning_rate(iterations) * self.d_loss_d_first_layer_bias
+                self.final_layer_weights -= self.exponential_learning_rate(iterations) * self.d_loss_d_final_layer_weights
+                self.final_layer_bias -= self.exponential_learning_rate(iterations) * self.d_loss_d_final_layer_bias
+                self.first_layer_filter -= self.exponential_learning_rate(iterations) * self.d_loss_d_filters
                 print(str(i + 1) + " images done!")
             print(str(iterations + 1) + " epochs done!")
 
@@ -335,8 +335,14 @@ class NeuralNetwork:
             self.true_positives[j] = self.confusion_matrix[j][j]
             self.false_positives[j] = np.sum(self.confusion_matrix[:,j]) - self.true_positives[j]
             self.false_negatives[j] = np.sum(self.confusion_matrix[j,:]) - self.true_positives[j]
-            self.recall[j] = self.true_positives[j]/(self.true_positives[j]+self.false_negatives[j])
-            self.precision[j] = self.true_positives[j] / (self.true_positives[j] + self.false_positives[j])
+            if self.true_positives[j] == 0 and self.false_negatives[j] == 0:
+                self.recall[j] = 0
+            else:
+                self.recall[j] = self.true_positives[j]/(self.true_positives[j]+self.false_negatives[j])
+            if self.true_positive[j] == 0 and self.false_positives[j] == 0:
+                self.precision[j] = 0
+            else:
+                self.precision[j] = self.true_positives[j] / (self.true_positives[j] + self.false_positives[j])
 
         print("Overall Accuracy: " + str((np.sum(self.true_positives) / len(self.test_data)) * 100) + "%")
 
@@ -386,10 +392,12 @@ train_label = np.array(train_label)
 test_data = np.array(test_data)/255
 test_label = np.array(test_label)
 
+# create the instance of the CNN
+CNN = NeuralNetwork(train_data, train_label, test_data, test_label, 50)
 
-CNN = NeuralNetwork(train_data, train_label, test_data, test_label, 10)
+# train the CNN
 CNN.train()
 
+# Evaluate the CNN
 CNN.evaluate_confusion_train()
 CNN.evaluate_confusion_test()
-print(CNN.evaluate_train(), CNN.evaluate_test())
