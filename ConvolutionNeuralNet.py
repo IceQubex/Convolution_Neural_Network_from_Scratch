@@ -94,6 +94,9 @@ class NeuralNetwork:
     def exponential_learning_rate(self, iterations):
         return 0.01*np.exp(-0.05*iterations)
 
+    def exponential_cyclic_learning_rate(self, iterations):
+        return (1/(30*iterations+400))*abs((iterations%10)-5)+0.0025
+
     def connected_layer(self, data4, weights, bias):
         input = np.zeros(bias.shape)
         for i in range(len(bias)):
@@ -224,11 +227,11 @@ class NeuralNetwork:
                     time.sleep(2)
 
                 # Updating the weights
-                self.first_layer_weights -= self.exponential_learning_rate(iterations) * self.d_loss_d_first_layer_weights
-                self.first_layer_bias -= self.exponential_learning_rate(iterations) * self.d_loss_d_first_layer_bias
-                self.final_layer_weights -= self.exponential_learning_rate(iterations) * self.d_loss_d_final_layer_weights
-                self.final_layer_bias -= self.exponential_learning_rate(iterations) * self.d_loss_d_final_layer_bias
-                self.first_layer_filter -= self.exponential_learning_rate(iterations) * self.d_loss_d_filters
+                self.first_layer_weights -= self.exponential_cyclic_learning_rate(iterations) * self.d_loss_d_first_layer_weights
+                self.first_layer_bias -= self.exponential_cyclic_learning_rate(iterations) * self.d_loss_d_first_layer_bias
+                self.final_layer_weights -= self.exponential_cyclic_learning_rate(iterations) * self.d_loss_d_final_layer_weights
+                self.final_layer_bias -= self.exponential_cyclic_learning_rate(iterations) * self.d_loss_d_final_layer_bias
+                self.first_layer_filter -= self.exponential_cyclic_learning_rate(iterations) * self.d_loss_d_filters
                 # print(str(i + 1) + " images done!")
             print(self.evaluate_train(), self.evaluate_test())
             print(str(iterations + 1) + " epochs done!")
