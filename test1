@@ -1,0 +1,12 @@
+import time
+import numpy as np
+import random
+import math
+
+test = [[1,1,1,1],[1,1,1,1]],[[2,2,2,2],[2,2,2,2]],[[3,3,3,3],[3,3,3,3]]
+test = np.array(test)
+print(test.shape)
+
+filter = [[1,1,1,1],[1,1,1,1]]
+filter=  np.array(filter)
+print(np.sum(filter*test))

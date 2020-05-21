@@ -74,12 +74,6 @@ class NeuralNetwork:
         self.first_filter_width = 50
         self.first_layer_filter = np.random.normal(size=(self.first_num_of_filters, self.first_filter_height, self.first_filter_width)) * math.sqrt(2 / len(self.train_data[0].flatten()))
 
-        # settings for second convolutional layer
-        self.second_num_of_filters = 30
-        self.second_filter_height = 5
-        self.second_filter_width = 5
-        self.second_layer_filter = np.random.normal(size=(self.second_num_of_filters, self.second_filter_height, self.second_filter_width)) * math.sqrt(2 / len(self.train_data[0].flatten()))
-
         # settings for first connected layer
         self.first_layer_num = 35
 
@@ -123,22 +117,6 @@ class NeuralNetwork:
             for j in range(len(loss1[0])):
                 for k in range(len(loss1[0][0])):
                     d_loss_d_filters[i] += loss1[i][j][k]* data3[j:j+self.first_filter_height, k:k + self.first_filter_width]
-        return d_loss_d_filters
-
-    def convolutional_layer_3D_input(self, data7, filters):
-        conv_output = np.zeros((len(filters), len(data7[0]) - self.second_filter_height + 1, self.width - self.second_filter_width + 1))
-        for i in range(len(filters)):
-            for j in range(len(data7[0]) - self.second_filter_height + 1):
-                for k in range(len(data7[0][0]) - self.second_filter_width + 1):
-                    conv_output[i][j][k] = np.sum(filters[i] * data7[:, j:j + self.second_filter_height, k:k + self.second_filter_width])
-        return conv_output
-
-    def conv_backprop_3D_input(self, data3, loss1):
-        d_loss_d_filters = np.zeros(self.second_layer_filter.shape)
-        for i in range(len(loss1)):
-            for j in range(len(loss1[0])):
-                for k in range(len(loss1[0][0])):
-                    d_loss_d_filters[i] += loss1[i][j][k]* data3[:, j:j+self.second_filter_height, k:k + self.second_filter_width]
         return d_loss_d_filters
 
     def maxpool_layer(self, data1, size):
@@ -207,11 +185,7 @@ class NeuralNetwork:
                     print(self.first_ReLU_output)
                     time.sleep(2)
 
-                self.second_conv_output = self.convolutional_layer_3D_input(self.first_ReLU_output, self.second_layer_filter)
-                self.second_maxpool_output = self.maxpool_layer(self.second_conv_output, 2)
-                self.second_ReLU_output = leaky_ReLU(self.second_maxpool_output)
-
-                self.first_layer_input = self.connected_layer(self.second_ReLU_output.flatten(), self.first_layer_weights, self.first_layer_bias)
+                self.first_layer_input = self.connected_layer(self.first_ReLU_output.flatten(), self.first_layer_weights, self.first_layer_bias)
                 self.first_layer_output = leaky_ReLU(self.first_layer_input)
                 self.final_layer_input = self.connected_layer(self.first_layer_output, self.final_layer_weights, self.final_layer_bias)
                 self.final_layer_output = softmax(self.final_layer_input)
@@ -236,31 +210,29 @@ class NeuralNetwork:
                         self.d_loss_d_first_layer_bias[l] += self.d_loss_d_output[k] * self.final_layer_weights[k][l] * der_leaky_ReLU(self.first_layer_input[l])
                         for m in range(len(self.first_ReLU_output.flatten())):
                             self.d_loss_d_first_layer_weights[l][m] += self.d_loss_d_output[k] * self.final_layer_weights[k][l] * der_leaky_ReLU(self.first_layer_input[l]) * self.first_ReLU_output.flatten()[m]
-                            self.d_loss_d_ReLU_input[m] += self.d_loss_d_output[k] * self.final_layer_weights[k][l] * der_leaky_ReLU(self.first_layer_input[l]) * self.first_layer_weights[l][m] * der_leaky_ReLU(self.second_maxpool_output.flatten()[m])
+                            self.d_loss_d_ReLU_input[m] += self.d_loss_d_output[k] * self.final_layer_weights[k][l] * der_leaky_ReLU(self.first_layer_input[l]) * self.first_layer_weights[l][m] * der_leaky_ReLU(self.first_maxpool_output.flatten()[m])
 
-                self.d_loss_d_second_maxpool_output = self.d_loss_d_ReLU_input.reshape((self.second_maxpool_output.shape))
+                self.d_loss_d_maxpool_output = self.d_loss_d_ReLU_input.reshape((self.first_maxpool_output.shape))
                 if self.debug == True:
                     print(self.d_loss_d_maxpool_output)
                     time.sleep(2)
 
-                self.d_loss_d_second_maxpool_input = self.maxpool_backprop(self.first_conv_output, self.d_loss_d_second_maxpool_output, 2)
+                self.d_loss_d_maxpool_input = self.maxpool_backprop(self.first_conv_output, self.d_loss_d_maxpool_output, 2)
                 if self.debug == True:
                     print(self.d_loss_d_maxpool_input)
                     time.sleep(2)
 
-                self.d_loss_d_second_filters = self.conv_backprop_2D_input(self.train_data[i], self.d_loss_d_second_maxpool_input)
+                self.d_loss_d_filters = self.conv_backprop_2D_input(self.train_data[i], self.d_loss_d_maxpool_input)
                 if self.debug == True:
                     print(self.d_loss_d_filters)
                     time.sleep(2)
-
-
 
                 # Updating the weights
                 self.first_layer_weights -= self.exponential_cyclic_learning_rate(iterations) * self.d_loss_d_first_layer_weights
                 self.first_layer_bias -= self.exponential_cyclic_learning_rate(iterations) * self.d_loss_d_first_layer_bias
                 self.final_layer_weights -= self.exponential_cyclic_learning_rate(iterations) * self.d_loss_d_final_layer_weights
                 self.final_layer_bias -= self.exponential_cyclic_learning_rate(iterations) * self.d_loss_d_final_layer_bias
-                self.second_layer_filter -= self.exponential_cyclic_learning_rate(iterations) * self.d_loss_d_second_filters
+                self.first_layer_filter -= self.exponential_cyclic_learning_rate(iterations) * self.d_loss_d_filters
                 print(str(i + 1) + " images done!")
             print(self.evaluate_train(), self.evaluate_test())
             print(str(iterations + 1) + " epochs done!")
@@ -374,7 +346,7 @@ class NeuralNetwork:
                 self.recall[j] = 0
             else:
                 self.recall[j] = self.true_positives[j]/(self.true_positives[j]+self.false_negatives[j])
-            if self.true_positive[j] == 0 and self.false_positives[j] == 0:
+            if self.true_positives[j] == 0 and self.false_positives[j] == 0:
                 self.precision[j] = 0
             else:
                 self.precision[j] = self.true_positives[j] / (self.true_positives[j] + self.false_positives[j])
